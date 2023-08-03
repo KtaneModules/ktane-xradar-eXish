@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -22,6 +23,7 @@ public class XRadarScript : MonoBehaviour
     private int _id, _correctPresses;
     private int[] _dispCols, _dispShps, _submissionRequired;
     private bool _isSolved;
+    private readonly static string[] positionRefs = new[] { "TL", "ML", "BL", "MR", "BR" };
 
     private void Start()
     {
@@ -29,10 +31,14 @@ public class XRadarScript : MonoBehaviour
         Color[] newCol = new Color[5];
         GameObject[] newShp = new GameObject[5];
 
-        Colors.CopyTo(newCol, 0);
-        Shapes.CopyTo(newShp, 0);
-        newCol.Shuffle();
-        newShp.Shuffle();
+        var idxColorArray = Enumerable.Range(0, 5).ToArray().Shuffle();
+        var idxShapeArray = Enumerable.Range(0, 5).ToArray().Shuffle();
+
+        newCol = idxColorArray.Select(a => Colors[a]).ToArray();
+        newShp = idxShapeArray.Select(a => Shapes[a]).ToArray();
+        //Shapes.CopyTo(newShp, 0);
+        //newCol.Shuffle();
+        //newShp.Shuffle();
 
         for(int i = 0; i < 5; ++i)
         {
@@ -44,6 +50,8 @@ public class XRadarScript : MonoBehaviour
             n.SetActive(true);
             StartCoroutine(Spin(n));
         }
+        Debug.LogFormat("[X-Radar #{0}] The buttons each have the following shapes in order, top to bottom, left to right: {1}", _id, idxShapeArray.Select(a => Shapes[a].name).Join(", "));
+        Debug.LogFormat("[X-Radar #{0}] The buttons each have the following colors in order, top to bottom, left to right: {1}", _id, idxColorArray.Select(a => ColorNames[a]).Join(", "));
 
         CameraRig.localPosition += new Vector3(Random.Range(-1000f, 1000f), Random.Range(0f, 1000f), Random.Range(-1000f, 1000f));
         LightParent.localEulerAngles = new Vector3(Random.Range(0f, 360f), 0f, 0f);
@@ -62,8 +70,7 @@ public class XRadarScript : MonoBehaviour
             while(_dispShps[i] == _dispCols[i]);
         }
 
-        Debug.LogFormat("[X-Radar #{0}] The shapes are:", _id);
-
+        Debug.LogFormat("[X-Radar #{0}] The displayed shapes are:", _id);
         for(int i = 0; i < Anchors.Length; i++)
         {
             Transform anchor = Anchors[i];
@@ -82,8 +89,9 @@ public class XRadarScript : MonoBehaviour
             presses.Add(_dispShps[i]);
             presses.Add(_dispCols[i]);
         }
+        Debug.LogFormat("[X-Radar #{0}] Press the buttons with these properties to disarm: {1}", _id, Enumerable.Range(0, presses.Count).Select(a => a % 2 == 0 ? newShp[presses[a]].name : ColorNames[Colors.IndexOf(b => b == newCol[presses[a]])]).Join(", "));
         _submissionRequired = presses.ToArray();
-
+        Debug.LogFormat("[X-Radar #{0}] ...Which corresponds to these actual positions: {1}", _id, _submissionRequired.Select(a => positionRefs[a]).Join(", "));
         StartCoroutine(RotateObjects());
 
         for(int i = 0; i < ButtonSels.Length; i++)
@@ -114,7 +122,7 @@ public class XRadarScript : MonoBehaviour
             }
             else
             {
-                Debug.LogFormat("[X-Radar #{0}] You pressed {1}, but I expected {2}. Strike!", _id, j, _submissionRequired[_correctPresses]);
+                Debug.LogFormat("[X-Radar #{0}] You pressed {1}, but I expected {2} for press #{3}. Strike!", _id, positionRefs[j], positionRefs[_submissionRequired[_correctPresses]], _correctPresses + 1);
                 _correctPresses = 0;
                 Module.HandleStrike();
             }
