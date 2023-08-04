@@ -16,7 +16,7 @@ MonoBehaviour:
   author: eXish
   description: "Identify five colored shapes as they pass by a thin line and input
     them using the buttons.\n\nHTML: https://ktane.timwi.de/HTML/X-Radar.html\r\nPDF:
-    https://ktane.timwi.de/PDF/X-Radar.pdf\r\n\r\nX-Radar (xradar) v1.1.0\r\nModule
+    https://ktane.timwi.de/PDF/X-Radar.pdf\r\n\r\nX-Radar (xradar) v1.1.1\nModule
     by Anonymous, maintained by eXish\r\nTwitch Plays supported"
   version: 1.1.1
   outputFolder: build
